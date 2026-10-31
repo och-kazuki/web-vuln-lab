@@ -7,6 +7,14 @@ export function resolveListenHost(env: Record<string, string | undefined>): stri
   return host;
 }
 
+/** 待受を起動ログの1行にする。0.0.0.0 はブラウザのURLではないので、開く先を別に書く。 */
+export function formatListenLog(host: string, port: number): string {
+  if (host === '0.0.0.0') {
+    return `web-vuln-lab: コンテナ内で ${host}:${port} を待受中。ブラウザでは http://127.0.0.1:${port} を開いてください`;
+  }
+  return `web-vuln-lab: http://${host}:${port}`;
+}
+
 export function resolveListenPort(env: Record<string, string | undefined>): number {
   const raw = env.PORT?.trim();
   if (raw === undefined || raw.length === 0) {

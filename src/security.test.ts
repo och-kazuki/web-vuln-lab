@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 import { createApp } from './app.js';
-import { resolveListenHost, resolveListenPort } from './listen.js';
+import { formatListenLog, resolveListenHost, resolveListenPort } from './listen.js';
 
 describe('公開範囲', () => {
   test('HOST 未指定の待受は 127.0.0.1 である', () => {
@@ -14,7 +14,15 @@ describe('公開範囲', () => {
     expect(resolveListenHost({ HOST: '0.0.0.0' })).toBe('0.0.0.0');
   });
 
+  test('0.0.0.0 の起動ログはブラウザで開くURLを案内する', () => {
+    expect(formatListenLog('0.0.0.0', 3000)).toBe(
+      'web-vuln-lab: コンテナ内で 0.0.0.0:3000 を待受中。ブラウザでは http://127.0.0.1:3000 を開いてください',
+    );
+    expect(formatListenLog('127.0.0.1', 3000)).toBe('web-vuln-lab: http://127.0.0.1:3000');
+  });
+
   test('compose のポート公開はホストのループバックに限る', () => {
+    // イメージの /app/compose.yaml はリポジトリの同じファイル。コンテナ内の pnpm test でもこの確認が走る。
     const compose = readFileSync(new URL('../compose.yaml', import.meta.url), 'utf8');
     expect(compose).toContain('127.0.0.1:3000:3000');
     expect(compose).not.toContain('"3000:3000"');

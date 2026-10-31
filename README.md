@@ -52,7 +52,16 @@ pnpm start
 docker compose up --build
 ```
 
-ホストから見るURLは同じく <http://127.0.0.1:3000> です。コンテナの中ではポート転送を受けるために `0.0.0.0` で待ち受けます。公開側は `compose.yaml` の `127.0.0.1:3000:3000` なので、ホストの外からは届きません。
+ホストから見るURLは同じく <http://127.0.0.1:3000> です。コンテナの中ではポート転送を受けるために `0.0.0.0` で待ち受けます。起動ログは、その待受と、ブラウザで開く `http://127.0.0.1:3000` を分けて出します。公開側は `compose.yaml` の `127.0.0.1:3000:3000` なので、ホストの外からは届きません。
+
+イメージは2段です。`build` ステージだけが `python3`、`make`、`g++` を入れ、`better-sqlite3` をコンパイルします。実行ステージにはコンパイラを含めません。学習用にソースと開発依存（TypeScript、Vitest など）は残してあるので、起動したイメージの中でテストできます。
+
+```bash
+docker compose run --rm web pnpm test
+docker compose run --rm web pnpm typecheck
+```
+
+`pnpm` は `COREPACK_HOME=/opt/corepack` にあり、`node` ユーザーからも読めます。`compose.yaml` もイメージの `/app/compose.yaml` に含めています。公開範囲のテストが、コンテナの中でもリポジトリと同じファイルを読むためです。CI はリポジトリをチェックアウトして同じテストを実行します。
 
 ## ラボ一覧とロードマップ
 
@@ -73,7 +82,7 @@ labs/01-sql-injection/       このラボのルート、SQL、説明、テスト
 labs/02-xss/                 次回以降に追加する想定
 labs/03-csrf/                次回以降に追加する想定
 compose.yaml                 ループバックだけへ公開する compose
-Dockerfile
+Dockerfile                   build でネイティブモジュールを作り、実行ステージはコンパイラなし
 .github/workflows/ci.yml     install、型チェック、テスト
 ```
 
